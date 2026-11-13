@@ -16,7 +16,7 @@ end
 RSpec.describe Rack::Tracker do
   def app
     Rack::Builder.new do
-      use Rack::Session::Cookie, secret: "FOO"
+      use Rack::Session::Cookie, secret: "FOO" * 22
 
       use Rack::Tracker do
         handler DummyHandler, { foo: 'head' }

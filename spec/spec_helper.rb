@@ -3,6 +3,7 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 require 'rspec'
 require 'rack/test'
+require 'rack/session'
 require 'capybara/rspec'
 require 'rack/tracker'
 require 'pry'
