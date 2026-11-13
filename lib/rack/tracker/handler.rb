@@ -47,9 +47,15 @@ class Rack::Tracker::Handler
     # Block syntax need to be used, otherwise backslashes in input will mess the output.
     # @see http://stackoverflow.com/a/4149087/518204 and https://github.com/railslove/rack-tracker/issues/50
     response.sub! %r{</#{self.position}>} do |m|
-      self.render << m.to_s
+      with_nonce(self.render) << m.to_s
     end
     response
+  end
+
+  # Rails' CSP middleware builds its header after we run, so a nonce generated here still ends up in the policy.
+  def content_security_policy_nonce
+    return unless defined?(ActionDispatch::Request) && ActionDispatch::Request.method_defined?(:content_security_policy_nonce)
+    ActionDispatch::Request.new(env).content_security_policy_nonce
   end
 
   def write_event(event)
@@ -82,6 +88,12 @@ class Rack::Tracker::Handler
   end
 
   private
+
+  def with_nonce(html)
+    nonce = content_security_policy_nonce
+    return html unless nonce
+    html.gsub(/<script(?=[\s>])/) { %(<script nonce="#{ERB::Util.html_escape(nonce)}") }
+  end
 
   # Transformations to be applied to tracker option keys.
   # Override in descendants, if necessary.
